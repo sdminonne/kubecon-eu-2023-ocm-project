@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+source ./lib.sh
+
+export KUBECONFIG=$(mktemp)
+echo "KUBECONFIG $KUBECONFIG"
+
+
+SUFFIX=""
+
+declare -a clusters=("hub${SUFFIX}" "cluster1${SUFFIX}")
+
+for CLUSTERNAME in "${clusters[@]}"
+do
+   echo "Setting up clustername ${CLUSTERNAME}";
+   minikube start -p ${CLUSTERNAME};
+   wait_until "minikube_up_and_running ${CLUSTERNAME}"
+
+done
+
+
+for CLUSTERNAME in "${clusters[@]}"
+do
+  virsh net-dumpxml mk-${CLUSTERNAME}  > mk-${CLUSTERNAME}.xml;
+  minikube stop -p ${CLUSTERNAME};
+  wait_until "minikube_stopped ${CLUSTERNAME}"
+  virsh net-destroy mk-${CLUSTERNAME};
+done
+
+for CLUSTERNAME in "${clusters[@]}"
+do
+   sed -i "/uuid/a \  <forward mode='route'/\>" mk-${CLUSTERNAME}.xml;
+   virsh net-define mk-${CLUSTERNAME}.xml;
+   virsh net-start mk-${CLUSTERNAME};
+   echo "Waiting 10 seconds..."
+   sleep 10 #TODO replace with wait-unitl
+done
+
+for CLUSTERNAME in "${clusters[@]}"
+do
+   minikube start -p ${CLUSTERNAME};
+   wait_until "minikube_up_and_running ${CLUSTERNAME}"
+done
+
+
+for CLUSTERNAME in "${clusters[@]}"; do
+ #   kubectl --context=${CLUSTERNAME} create -f fedora.yaml;
+    cat <<'EOF' | kubectl --context=${CLUSTERNAME} create -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fedora
+  namespace: default
+spec:
+  containers:
+  - name: fedora
+    image: registry.fedoraproject.org/fedora:35
+    command:
+      - sleep
+      - "3600"
+    imagePullPolicy: IfNotPresent
+  restartPolicy: Always
+EOF
+    wait_until "fedora_pod_running ${CLUSTERNAME}" 5 30
+done
+
+
+#    wait_until "fedora_pod_running ${CLUSTERNAME}" 5 30
+#done
+
+
+
+kubectl config view --flatten > kubeconfig
+
+
+for CLUSTERNAME in "${clusters[@]}"
+do
+   kubectl --context ${CLUSTERNAME} cp ./kubeconfig fedora:kubeconfig;
+   kubectl --context ${CLUSTERNAME} cp /home/sdminonne/opt/kubectl/kubectl_v1.22.2 fedora:kubectl;
+done
+
+for((i=0;i<${#clusters[@]};i++))
+do for((j=0;j<${#clusters[@]};j++))
+   do kubectl --context=${clusters[$i]} exec -it fedora -- /kubectl --kubeconfig=/kubeconfig --context=${clusters[$j]} cluster-info
+   done
+done
+
+mv kubeconfig kubeconfig${SUFFIX}
+
+exit

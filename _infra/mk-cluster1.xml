@@ -1,0 +1,15 @@
+<network>
+  <name>mk-cluster1</name>
+  <uuid>5801b387-ab01-4f4d-8903-9871edb82484</uuid>
+  <forward mode='route'/>
+  <bridge name='virbr2' stp='on' delay='0'/>
+  <mac address='52:54:00:86:19:10'/>
+  <dns enable='no'/>
+  <ip address='192.168.50.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.50.2' end='192.168.50.254'/>
+      <host mac='52:54:00:af:9f:03' name='cluster1' ip='192.168.50.27'/>
+    </dhcp>
+  </ip>
+</network>
+

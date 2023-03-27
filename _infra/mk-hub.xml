@@ -1,0 +1,15 @@
+<network>
+  <name>mk-hub</name>
+  <uuid>384e08fc-36a6-49cb-96dc-8d8eaadaa96b</uuid>
+  <forward mode='route'/>
+  <bridge name='virbr1' stp='on' delay='0'/>
+  <mac address='52:54:00:1c:96:f4'/>
+  <dns enable='no'/>
+  <ip address='192.168.39.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.39.2' end='192.168.39.254'/>
+      <host mac='52:54:00:aa:14:11' name='hub' ip='192.168.39.191'/>
+    </dhcp>
+  </ip>
+</network>
+
