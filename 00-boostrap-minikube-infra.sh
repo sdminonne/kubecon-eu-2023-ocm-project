@@ -1,29 +1,16 @@
 #!/usr/bin/env bash
 
+#export KUBECONFIG=$(mktemp)
+#echo "KUBECONFIG $KUBECONFIG"
 
-export KUBECONFIG=$(mktemp)
-echo "KUBECONFIG $KUBECONFIG"
+. common.sh
+log::info "KUBECONFIG $KUBECONFIG"
 
 #check pre-requisities: TODO check version
 command -v kubectl >/dev/null 2>&1 || { log::error >&2 "can't find kubectl.  Aborting."; exit 1; }
 
 #check pre-requisities: TODO check version
 command -v minikube  >/dev/null 2>&1 || { log::error >&2 "can't find minikube.  Aborting."; exit 1; }
-
-#Log in RED
-log::error() {
-  printf "\033[0;31m%s\033[0m\n" "ERROR: $1"
-}
-
-#Log in yellow
-log::warning() {
-  printf "\033[1;33m%s\033[0m\n" "WARNING: $1"
-}
-
-#Log in green
-log::info() {
-  printf "\033[0;32m%s\033[0m\n" "INFO: $1"
-}
 
 minikube_up_and_running() {
     local profile=$1
@@ -51,54 +38,12 @@ minikube_stopped() {
 }
 
 
-fedora_pod_running() {
-    local context=$1
-    podstatus=$(kubectl --context=$context get pod fedora -o jsonpath='{.status.phase}')
-    if [[ "${podstatus}" == "Running" ]]
-    then
-        echo "0"
-        return
-    fi
-    echo "1"
-}
-
-
-
 containerRuntime=$(minikube config get container-runtime )
 [[ "${containerRuntime}" == "cri-o" ]] || { log::error >&2 "Container runtime should be cri-o"; exit 1; }
 
 driver=$(minikube config get driver )
 [[ "${driver}" == "kvm2" ]] || { log::error >&2 "Driver should be kvm2. While it looks ${driver}"; exit 1; }
 
-
-
-
-wait_until() {
-  local script=$1
-  local wait=${2:-.5}
-  local timeout=${3:-10}
-  local i
-
-  script_pretty_name=$(echo "$script" | sed 's/_/ /g')
-  times=$(echo "($(bc <<< "scale=2;$timeout/$wait")+0.5)/1" | bc)
-  for i in $(seq 1 "$times"); do
-    local out=$($script)
-    if [ "$out" == "0" ]
-    then
-      log::info "${script_pretty_name}: OK"
-      return 0
-    fi
-    log::warning "${script_pretty_name}: Waiting..."
-    sleep $wait
-  done
-  log::error "${script_pretty_name}"
-  return 1
-}
-
-
-SUFFIX="-keu-23"
-
-declare -a clusters=("hub${SUFFIX}" "cluster1${SUFFIX}")
 
 for CLUSTERNAME in "${clusters[@]}"
 do
@@ -133,42 +78,24 @@ do
 done
 
 
-for CLUSTERNAME in "${clusters[@]}"; do
- #   kubectl --context=${CLUSTERNAME} create -f fedora.yaml;
-    cat <<'EOF' | kubectl --context=${CLUSTERNAME} create -f -
-apiVersion: v1
-kind: Pod
-metadata:
-  name: fedora
-  namespace: default
-spec:
-  containers:
-  - name: fedora
-    image: registry.fedoraproject.org/fedora:35
-    command:
-      - sleep
-      - "3600"
-    imagePullPolicy: IfNotPresent
-  restartPolicy: Always
-EOF
-    wait_until "fedora_pod_running ${CLUSTERNAME}" 5 30
-done
-
-
 kubectl config view --flatten > kubeconfig
 
-for CLUSTERNAME in "${clusters[@]}"
-do
-   kubectl --context ${CLUSTERNAME} cp ./kubeconfig fedora:kubeconfig;
-   kubectl --context ${CLUSTERNAME} cp $(readlink -e $(which kubectl)) fedora:kubectl;
-done
+#for CLUSTERNAME in "${clusters[@]}"
+#do
+#   kubectl --context ${CLUSTERNAME} cp ./kubeconfig my-kubectl:kubeconfig;
+#   kubectl --context ${CLUSTERNAME} cp $(readlink -e $(which kubectl)) my-kubectl:kubectl;
+#done
 
-for((i=0;i<${#clusters[@]};i++))
-do for((j=0;j<${#clusters[@]};j++)) #TODO skips when i==j
-   do kubectl --context=${clusters[$i]} exec -it fedora -- /kubectl --kubeconfig=/kubeconfig --context=${clusters[$j]} cluster-info
-   done
-done
+#for((i=0;i<${#clusters[@]};i++))
+#do for((j=0;j<${#clusters[@]};j++))
+#   do  [ "${clusters[$i]}" != "${clusters[$j]}" ] && kubectl --context=${clusters[$i]} exec -it my-kubectl -- /kubectl --kubeconfig=/kubeconfig --context=${clusters[$j]} cluster-info
+#   done
+#done
 
-mv kubeconfig kubeconfig${SUFFIX}
+#for((i=0;i<${#clusters[@]};i++))
+#do kubectl  --context=${clusters[$i]} delete pod my-kubectl
+#done
+
+#mv kubeconfig kubeconfig${SUFFIX}
 
 exit

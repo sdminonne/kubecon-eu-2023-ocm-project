@@ -17,9 +17,9 @@ TOKEN=$(clusteradm --context ${HUBCTX} get token | awk -F "=" '/token=/ {print $
 
 pei "clusteradm --context ${MANAGEDCTX} join --hub-token ${TOKEN} --hub-apiserver ${HUBURL} --wait --cluster-name ${MANAGEDCTX} --context ${MANAGEDCTX}"
 
-#wait for CSR to be approved
-
+#TODO wait for CSR to be approved
 #kubectl get csr -w --context ${HUBCTX}"
+
 
 
 pei "clusteradm --context  ${HUBCTX} accept --clusters ${MANAGEDCTX}"
