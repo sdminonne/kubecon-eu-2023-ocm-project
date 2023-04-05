@@ -1,0 +1,22 @@
+apiVersion: work.open-cluster-management.io/v1
+kind: ManifestWork
+metadata:
+  name: mw-01
+  namespace: cluster1-keu-23
+spec:
+  workload:
+    manifests:
+      - apiVersion: v1
+        kind: Pod
+        metadata:
+          name: hello
+          namespace: default
+        spec:
+          containers:
+            - name: hello
+              image: busybox
+              args:
+              - sh
+              - -c
+              - echo "Hello, Kubernetes!" && sleep 3600
+          restartPolicy: OnFailure
