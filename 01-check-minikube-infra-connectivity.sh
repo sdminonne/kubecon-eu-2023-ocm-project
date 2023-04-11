@@ -35,7 +35,7 @@ spec:
     imagePullPolicy: IfNotPresent
   restartPolicy: Always
 EOF
-    wait_until "my-kubectl_pod_running ${CLUSTERNAME}" 5 30
+    wait_until "my-kubectl_pod_running ${CLUSTERNAME}" 10 45
 done
 
 
@@ -44,9 +44,9 @@ done
 for CLUSTERNAME in "${clusters[@]}"
 do
     kubectl --context ${CLUSTERNAME} cp kubeconfig my-kubectl:kubeconfig;
-    ([ $? -eq 0 ] && log::info "kubeconfig copied into my-kubectl in  ${CLUSTERNAME}") || log::error "Couldn't copy kubeconfig in  ${CLUSTERNAME}"
+    ([ $? -eq 0 ] && log::info "kubeconfig copied into my-kubectl in  ${CLUSTERNAME}") || ( log::error "Couldn't copy kubeconfig in  ${CLUSTERNAME}" && exit -1; )
     kubectl --context ${CLUSTERNAME} cp $(readlink -e $(which kubectl)) my-kubectl:kubectl;
-     ([ $? -eq 0 ] && log::info "kubectl copied to my-kubectl in  ${CLUSTERNAME} ") || log::error "Couldn't copy kubectl in ${CLUSTERNAME} "
+     ([ $? -eq 0 ] && log::info "kubectl copied to my-kubectl in  ${CLUSTERNAME} ") || ( log::error "Couldn't copy kubectl in ${CLUSTERNAME}" && exit -1; )
 done
 
 for((i=0;i<${#clusters[@]};i++))
