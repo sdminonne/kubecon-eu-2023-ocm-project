@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
 
-HUBCTX=hub
+
 MANAGEDCTX=cluster1
 
-declare -a clusters=("hub" "cluster1")
+HUB=hub
+
+declare -a managedclusters=("cluster1" "cluster2")
+declare -a clusters=("${HUB}" "${managedclusters[@]}")
+
+get_client_context_from_cluster_name()  {
+    local clustername=$1
+     case $(uname -s) in
+	'Linux') # Here we assume on Linux we always use minikube
+	    echo ${clustername}
+	    ;;
+	'kind')  # Otherwise kind :(
+	    echo kind-${clustername}
+	    ;;
+    esac
+}
 
 wait_until() {
   local script=$1

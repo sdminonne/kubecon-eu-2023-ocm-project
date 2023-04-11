@@ -1,8 +1,8 @@
 apiVersion: work.open-cluster-management.io/v1
 kind: ManifestWork
 metadata:
-  name: mw-01
-  namespace: cluster1
+  name: mw-${managedcluster}
+  namespace: ${managedcluster}
 spec:
   workload:
     manifests:

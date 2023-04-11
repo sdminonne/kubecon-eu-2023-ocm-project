@@ -1,26 +1,33 @@
 #!/usr/bin/env bash
 
-. demo-magic.sh
+#. demo-magic.sh
 
 . common.sh
 
 #check pre-requisities: TODO check version
 command -v clusteradm >/dev/null 2>&1 || { log::error >&2 "can't find clusteradm.  Aborting."; exit 1; }
 
-HUBIP=$(minikube -p $HUBCTX ip)
+HUBIP=$(minikube -p $(get_client_context_from_cluster_name ${HUB}) ip)
 HUBURL=https://${HUBIP}:8443
 
-#echo HUBCTX=${HUBCTX}
-#echo MANAGEDCTX=${MANAGEDCTX}
 
-TOKEN=$(clusteradm --context ${HUBCTX} get token | awk -F "=" '/token=/ {print $2}')
+TOKEN=$(clusteradm --context $(get_client_context_from_cluster_name ${HUB}) get token | awk -F "=" '/token=/ {print $2}')
 
-pe "clusteradm --context ${MANAGEDCTX} join --hub-token ${TOKEN} --hub-apiserver ${HUBURL} --wait --cluster-name ${MANAGEDCTX} --context ${MANAGEDCTX}"
+for managedcluster in ${managedclusters[@]};
+do
+    pe "clusteradm --context $(get_client_context_from_cluster_name ${managedcluster}) join --hub-token ${TOKEN} --hub-apiserver ${HUBURL} --wait --cluster-name ${managedcluster} --context $(get_client_context_from_cluster_name ${managedcluster});"
+    pe "clusteradm --context $(get_client_context_from_cluster_name ${managedcluster}) join --hub-token ${TOKEN} --hub-apiserver ${HUBURL} --wait --cluster-name ${managedcluster} --context $(get_client_context_from_cluster_name ${managedcluster});"
 
-pe "kubectl get csr --context ${HUBCTX}"
+done
 
-pe "clusteradm --context  ${HUBCTX} accept --clusters ${MANAGEDCTX}"
 
-pe "kubectl get csr --context ${HUBCTX}"
+pe "kubectl get csr --context $(get_client_context_from_cluster_name ${HUB})"
 
-cmd
+
+for managedcluster in ${managedclusters[@]};
+do
+    pe "clusteradm --context  $(get_client_context_from_cluster_name ${HUB}) accept --clusters $(get_client_context_from_cluster_name ${managedcluster})"
+done
+
+
+pe "kubectl get csr --context $(get_client_context_from_cluster_name ${HUB})"
