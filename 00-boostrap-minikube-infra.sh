@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
-#export KUBECONFIG=$(mktemp)
-#echo "KUBECONFIG $KUBECONFIG"
-
 . common.sh
+
 log::info "KUBECONFIG $KUBECONFIG"
 
 #check pre-requisities: TODO check version
@@ -79,23 +77,6 @@ done
 
 
 kubectl config view --flatten > kubeconfig
-
-#for CLUSTERNAME in "${clusters[@]}"
-#do
-#   kubectl --context ${CLUSTERNAME} cp ./kubeconfig my-kubectl:kubeconfig;
-#   kubectl --context ${CLUSTERNAME} cp $(readlink -e $(which kubectl)) my-kubectl:kubectl;
-#done
-
-#for((i=0;i<${#clusters[@]};i++))
-#do for((j=0;j<${#clusters[@]};j++))
-#   do  [ "${clusters[$i]}" != "${clusters[$j]}" ] && kubectl --context=${clusters[$i]} exec -it my-kubectl -- /kubectl --kubeconfig=/kubeconfig --context=${clusters[$j]} cluster-info
-#   done
-#done
-
-#for((i=0;i<${#clusters[@]};i++))
-#do kubectl  --context=${clusters[$i]} delete pod my-kubectl
-#done
-
-#mv kubeconfig kubeconfig${SUFFIX}
+([ $? -eq 0 ] && log::info "generated kubeconfig") || log::error "Could not generate kubeconfig"
 
 exit

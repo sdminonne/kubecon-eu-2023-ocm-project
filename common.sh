@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-SUFFIX="-keu-23"
+HUBCTX=hub
+MANAGEDCTX=cluster1
 
-HUBCTX=hub${SUFFIX}
-MANAGEDCTX=cluster1${SUFFIX}
-export KUBECONFIG=$(pwd)/kubeconfig${SUFFIX}
-
-declare -a clusters=("hub${SUFFIX}" "cluster1${SUFFIX}")
+declare -a clusters=("hub" "cluster1")
 
 wait_until() {
   local script=$1

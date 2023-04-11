@@ -12,3 +12,6 @@ HUBIP=$(minikube -p $HUBCTX ip)
 HUBURL=https://${HUBIP}:8443
 
 pe "clusteradm init --wait --context ${HUBCTX}"
+
+
+pe "kubectl -n open-cluster-management get pod --context ${HUBCTX}"

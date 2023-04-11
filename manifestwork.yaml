@@ -2,15 +2,19 @@ apiVersion: work.open-cluster-management.io/v1
 kind: ManifestWork
 metadata:
   name: mw-01
-  namespace: cluster1-keu-23
+  namespace: cluster1
 spec:
   workload:
     manifests:
       - apiVersion: v1
-        kind: Pod
+        kind: Namespace
         metadata:
           name: hello
-          namespace: default
+      - apiVersion: v1
+        kind: Pod
+        metadata:
+          name: world
+          namespace: hello
         spec:
           containers:
             - name: hello

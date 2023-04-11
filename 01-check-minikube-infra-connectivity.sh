@@ -14,6 +14,9 @@ my-kubectl_pod_running() {
 }
 
 
+log::info "kubeconfig -> $(pwd)/kubeconfig"
+
+
 for CLUSTERNAME in "${clusters[@]}"; do
  #   kubectl --context=${CLUSTERNAME} create -f my-kubectl.yaml;
     cat <<'EOF' | kubectl --context=${CLUSTERNAME} create -f -
@@ -36,10 +39,14 @@ EOF
 done
 
 
+
+
 for CLUSTERNAME in "${clusters[@]}"
 do
-   kubectl --context ${CLUSTERNAME} cp ${KUBECONFIG} my-kubectl:kubeconfig;
-   kubectl --context ${CLUSTERNAME} cp $(readlink -e $(which kubectl)) my-kubectl:kubectl;
+    kubectl --context ${CLUSTERNAME} cp kubeconfig my-kubectl:kubeconfig;
+    ([ $? -eq 0 ] && log::info "kubeconfig copied into my-kubectl in  ${CLUSTERNAME}") || log::error "Couldn't copy kubeconfig in  ${CLUSTERNAME}"
+    kubectl --context ${CLUSTERNAME} cp $(readlink -e $(which kubectl)) my-kubectl:kubectl;
+     ([ $? -eq 0 ] && log::info "kubectl copied to my-kubectl in  ${CLUSTERNAME} ") || log::error "Couldn't copy kubectl in ${CLUSTERNAME} "
 done
 
 for((i=0;i<${#clusters[@]};i++))
@@ -49,5 +56,6 @@ do for((j=0;j<${#clusters[@]};j++))
 done
 
 for((i=0;i<${#clusters[@]};i++))
-do kubectl  --context=${clusters[$i]} delete pod my-kubectl
+do
+    kubectl  --context=${clusters[$i]} delete pod my-kubectl --wait=false;
 done
