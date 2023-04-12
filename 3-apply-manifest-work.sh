@@ -29,6 +29,8 @@ spec:
         metadata:
           name: world
           namespace: hello
+          labels:
+            environment: production
         spec:
           containers:
             - name: hello
@@ -45,5 +47,4 @@ EOF
     pe "kubectl --context $(get_client_context_from_cluster_name ${HUB}) apply -f /tmp/mw-${managedcluster}.yaml";
     pe "kubectl --context $(get_client_context_from_cluster_name ${managedcluster}) get ns";
     pe "kubectl --context $(get_client_context_from_cluster_name ${managedcluster}) logs world -n hello";
-
 done
