@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 
-#. demo-magic.sh
+. demo-magic.sh
 
 . common.sh
+
+commaseparatedmanagedcluster=""
+delim=""
+for item in "${managedclusters[@]}"; do
+  commaseparatedmanagedcluster="$commaseparatedmanagedcluster$delim$item"
+  delim=","
+done
+
+
 
 #check pre-requisities: TODO check version
 command -v clusteradm >/dev/null 2>&1 || { log::error >&2 "can't find clusteradm.  Aborting."; exit 1; }
@@ -15,19 +24,11 @@ TOKEN=$(clusteradm --context $(get_client_context_from_cluster_name ${HUB}) get 
 
 for managedcluster in ${managedclusters[@]};
 do
-    pe "clusteradm --context $(get_client_context_from_cluster_name ${managedcluster}) join --hub-token ${TOKEN} --hub-apiserver ${HUBURL} --wait --cluster-name ${managedcluster} --context $(get_client_context_from_cluster_name ${managedcluster});"
-    pe "clusteradm --context $(get_client_context_from_cluster_name ${managedcluster}) join --hub-token ${TOKEN} --hub-apiserver ${HUBURL} --wait --cluster-name ${managedcluster} --context $(get_client_context_from_cluster_name ${managedcluster});"
-
+    pe "clusteradm --context $(get_client_context_from_cluster_name ${managedcluster}) join --hub-token ${TOKEN} --hub-apiserver ${HUBURL} --wait --cluster-name ${managedcluster}";
 done
-
 
 pe "kubectl get csr --context $(get_client_context_from_cluster_name ${HUB})"
 
-
-for managedcluster in ${managedclusters[@]};
-do
-    pe "clusteradm --context  $(get_client_context_from_cluster_name ${HUB}) accept --clusters $(get_client_context_from_cluster_name ${managedcluster})"
-done
-
+pe "clusteradm --context  $(get_client_context_from_cluster_name ${HUB}) accept --clusters ${commaseparatedmanagedcluster}"
 
 pe "kubectl get csr --context $(get_client_context_from_cluster_name ${HUB})"

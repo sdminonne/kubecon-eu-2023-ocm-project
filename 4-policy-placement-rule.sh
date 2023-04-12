@@ -21,7 +21,7 @@ done
 #for policy placement rule we need Aplication Management
 #See-> https://open-cluster-management.io/getting-started/integration/app-lifecycle/
 
-echo "Application lifecycile management need to be installed"
+echo "Application lifecycle management need to be installed"
 
 pe "clusteradm install hub-addon --names application-manager --context $(get_client_context_from_cluster_name ${HUB})"
 pe "kubectl -n open-cluster-management get deploy multicluster-operators-subscription --context $(get_client_context_from_cluster_name ${HUB})"
@@ -29,13 +29,15 @@ pe "kubectl -n open-cluster-management get deploy multicluster-operators-subscri
 #Create the open-cluster-management-agent-addon namespace on the managed cluster.
 for managedcluster in ${managedclusters[@]};
 do
-    pe "kubectl create ns open-cluster-management-agent-addon --context $(get_client_context_from_cluster_name ${managedcluster}) --context $(get_client_context_from_cluster_name ${HUB})";
+    pe "kubectl create ns open-cluster-management-agent-addon --context $(get_client_context_from_cluster_name ${managedcluster})";
 done
-#TODO CHECK THIS
 
 
 #Deploy the subscription add-on in corresponding managed cluster namespace on the hub cluster.
-pe "clusteradm --context $(get_client_context_from_cluster_name ${HUB}) addon enable --names application-manager --clusters ${commaseparatedmanagedcluster}"
+pe "clusteradm --context $(get_client_context_from_cluster_name ${HUB}) addon enable --names application-manager --clusters ${commaseparatedmanagedcluster} "
+echo "Wait... or add a wait until..."
+
+
 for managedcluster in ${managedclusters[@]};
 do
     pe "kubectl -n ${managedcluster} get managedclusteraddon --context $(get_client_context_from_cluster_name ${HUB})";
@@ -86,7 +88,9 @@ done
 pe "kubectl --context $(get_client_context_from_cluster_name ${HUB}) apply -n default -f https://raw.githubusercontent.com/open-cluster-management/policy-collection/main/stable/CM-Configuration-Management/policy-pod.yaml"
 
 #Update the PlacementRule to distribute the policy to the managed cluster with the following command (this clusterSelector will deploy the policy to all managed clusters):
-pe "kubectl --context $(get_client_context_from_cluster_name ${HUB})" patch -n default placementrule.apps.open-cluster-management.io/placement-policy-pod --type=merge -p \"{\\\"spec\\\":{\\\"clusterSelector\\\":{\\\"matchExpressions\\\":[]}}}\""
+pe "kubectl --context $(get_client_context_from_cluster_name ${HUB}) patch -n default placementrule.apps.open-cluster-management.io/placement-policy-pod --type=merge -p \"{\\\"spec\\\":{\\\"clusterSelector\\\":{\\\"matchExpressions\\\":[]}}}\""
+
+
 #To confirm the the policy has been applied to cluster1 and 2
 pe "kubectl --context $(get_client_context_from_cluster_name ${HUB}) get -n default placementrule.apps.open-cluster-management.io/placement-policy-pod -o yaml"
 

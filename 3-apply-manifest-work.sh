@@ -9,7 +9,6 @@
 
 #pe "cat manifestwork.yaml"
 
-
 for managedcluster in ${managedclusters[@]};
 do
     cat << EOF > /tmp/mw-${managedcluster}.yaml
@@ -40,6 +39,8 @@ spec:
               - echo "Hello, Kubernetes!" && sleep 3600
           restartPolicy: OnFailure
 EOF
+
+    pe " cat /tmp/mw-${managedcluster}.yaml"
     pe "kubectl --context $(get_client_context_from_cluster_name ${managedcluster}) get ns";
     pe "kubectl --context $(get_client_context_from_cluster_name ${HUB}) apply -f /tmp/mw-${managedcluster}.yaml";
     pe "kubectl --context $(get_client_context_from_cluster_name ${managedcluster}) get ns";
