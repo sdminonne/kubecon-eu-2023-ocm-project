@@ -79,6 +79,7 @@ pe "kubectl --context  $(get_client_context_from_cluster_name ${HUB}) -n argocd 
 #Deploy the argocd-pull-model
 git clone https://github.com/sdminonne/argocd-pull-integration.git
 cd argocd-pull-integration/
+pe "cat ./example/guestbook-app-set.yaml"
 make deploy
 cd ..
 
@@ -92,14 +93,14 @@ do
 apiVersion: v1
 kind: Secret
 metadata:
-  name: ${managedcluster}-secret # cluster1-secret
+  name: ${managedcluster}-secret
   namespace: argocd
   labels:
     argocd.argoproj.io/secret-type: cluster
 type: Opaque
 stringData:
-  name: ${managedcluster} # cluster1
-  server: https://${managedcluster}-control-plane:6443 # https://cluster1-control-plane:6443
+  name: ${managedcluster}
+  server: https://${managedcluster}-control-plane:6443
 EOF
 
     pe " cat /tmp/argocd-secret-${managedcluster}.yaml"
@@ -136,3 +137,5 @@ done
 
 
 pe "kubectl --context  $(get_client_context_from_cluster_name ${HUB}) -n argocd get app"
+
+cmd

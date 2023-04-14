@@ -29,8 +29,6 @@ spec:
         metadata:
           name: world
           namespace: hello
-          labels:
-            environment: production
         spec:
           containers:
             - name: hello
