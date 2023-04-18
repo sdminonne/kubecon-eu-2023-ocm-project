@@ -10,4 +10,4 @@ do minikube delete -p $c;
 done
 
 
-rm -fr *-keu-23.xml kubeconfig-keu-23
+rm -fr *.xml kubeconfig
