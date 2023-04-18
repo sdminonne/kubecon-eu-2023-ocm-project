@@ -66,7 +66,7 @@ pe "kubectl --context $(get_client_context_from_cluster_name ${HUB}) get managed
 for currentcluster in ${clusters[@]};
 do
     pe "kubectl --context $(get_client_context_from_cluster_name ${currentcluster}) create namespace argocd"
-    pe "kubectl --context $(get_client_context_from_cluster_name ${currentcluster}) apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/core-install.yaml"
+    pe "kubectl --context $(get_client_context_from_cluster_name ${currentcluster}) apply -n argocd -f demo-argocd-pull-model/core-install.yaml"
 done
 
 
@@ -77,7 +77,7 @@ pe "kubectl --context  $(get_client_context_from_cluster_name ${HUB}) -n argocd 
 
 
 #Deploy the argocd-pull-model
-git clone https://github.com/sdminonne/argocd-pull-integration.git
+[[ -d argocd-pull-integration ]] || git clone https://github.com/sdminonne/argocd-pull-integration.git
 cd argocd-pull-integration/
 pe "cat ./example/guestbook-app-set.yaml"
 make deploy

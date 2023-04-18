@@ -166,7 +166,7 @@ done
 
 ## Placement Rule API
 
-pe "kubectl --context $(get_client_context_from_cluster_name ${HUB}) apply -n default -f https://raw.githubusercontent.com/open-cluster-management/policy-collection/main/stable/CM-Configuration-Management/policy-pod.yaml"
+pe "kubectl --context $(get_client_context_from_cluster_name ${HUB}) apply -n default -f demo/policy-pod.yaml"
 
 #Update the PlacementRule to distribute the policy to the managed cluster with the following command (this clusterSelector will deploy the policy to all managed clusters):
 pe "kubectl --context $(get_client_context_from_cluster_name ${HUB}) patch -n default placementrule.apps.open-cluster-management.io/placement-policy-pod --type=merge -p \"{\\\"spec\\\":{\\\"clusterSelector\\\":{\\\"matchExpressions\\\":[]}}}\""
